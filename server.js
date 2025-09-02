@@ -8,16 +8,41 @@ const app = express();
 
 // Middleware
 app.use(cors({
-  origin: ['https://svgviewer-alpha.vercel.app', 'http://localhost:3000', 'http://localhost:5173'],
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    const allowedOrigins = [
+      'https://svgviewer-alpha.vercel.app',
+      'http://localhost:3000', 
+      'http://localhost:5173'
+    ];
+    
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      console.log('CORS blocked origin:', origin);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  optionsSuccessStatus: 200 // Some legacy browsers choke on 204
 }));
 
 // Add timeout and keep-alive headers
 app.use((req, res, next) => {
   res.setHeader('Connection', 'keep-alive');
   res.setHeader('Keep-Alive', 'timeout=30');
+  next();
+});
+
+// CORS debugging middleware
+app.use((req, res, next) => {
+  console.log('Request origin:', req.headers.origin);
+  console.log('Request method:', req.method);
+  console.log('Request headers:', req.headers);
   next();
 });
 
@@ -34,6 +59,9 @@ app.use((req, res, next) => {
 
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// Preflight OPTIONS handler for all routes
+app.options('*', cors());
 
 // Routes
 app.use('/api/svgs', svgRoutes);
