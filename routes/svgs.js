@@ -94,14 +94,14 @@ router.get('/:id', async (req, res) => {
 // POST /api/svgs - Create new SVG
 router.post('/', upload.single('svgFile'), async (req, res) => {
   try {
-    const { name, description } = req.body;
+    const { name, description, category } = req.body;
     const file = req.file;
 
     // Validation
-    if (!name || !description || !file) {
+    if (!name || !description || !category || !file) {
       return res.status(400).json({
         success: false,
-        message: 'Name, description, and SVG file are required'
+        message: 'Name, description, category, and SVG file are required'
       });
     }
 
@@ -117,6 +117,7 @@ router.post('/', upload.single('svgFile'), async (req, res) => {
     const svgData = {
       name: name.trim(),
       description: description.trim(),
+      category: category.trim(),
       content: svgContent,
       fileSize: file.size,
       originalName: file.originalname
@@ -143,18 +144,19 @@ router.post('/', upload.single('svgFile'), async (req, res) => {
 router.put('/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, description } = req.body;
+    const { name, description, category } = req.body;
 
-    if (!name || !description) {
+    if (!name || !description || !category) {
       return res.status(400).json({
         success: false,
-        message: 'Name and description are required'
+        message: 'Name, description, and category are required'
       });
     }
 
     const updateData = {
       name: name.trim(),
-      description: description.trim()
+      description: description.trim(),
+      category: category.trim()
     };
 
     const updatedSvg = await SvgModel.updateById(id, updateData);

@@ -97,7 +97,8 @@ export class SvgModel {
       const svgs = await collection.find({
         $or: [
           { name: searchRegex },
-          { description: searchRegex }
+          { description: searchRegex },
+          { category: searchRegex }
         ]
       }).sort({ createdAt: -1 }).toArray();
       
